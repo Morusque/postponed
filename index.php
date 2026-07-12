@@ -380,7 +380,7 @@
 			<table>
 				<tr>
 					<th>
-						<div class="box"><textarea class="statusInput" id="statusInput" type="text" name="post status" style="resize:none;" >What's up ?</textarea>
+						<div class="box"><textarea class="statusInput" id="statusInput" type="text" name="post status" style="resize:none;" >What will be up ?</textarea>
 						<br/>
 						<span id="charCount" style="color:#909090;"></span>
 						<br/>
