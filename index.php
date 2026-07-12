@@ -146,7 +146,10 @@
 				});
 				$("#statusInput").focusin(function(){
 					$("#statusInput").html("");
+					updateCharCount();
 				});
+				$("#statusInput").on("input", updateCharCount);
+				updateCharCount();
             });
 			function setCookie(c_name, value, exdays) {
                 var exdate = new Date();
@@ -288,8 +291,19 @@
 					}
 				});
 			}
+			var maxStatusLength = 7000;
+			function updateCharCount() {
+				var len = $("#statusInput").val().length;
+				var counter = document.getElementById('charCount');
+				counter.innerText = len + " / " + maxStatusLength;
+				counter.style.color = (len > maxStatusLength) ? "#a02020" : "#909090";
+			}
 			function postStatus() {
 				var statusUpdate = $("#statusInput").val();
+				if (statusUpdate.length > maxStatusLength) {
+					$("#postMessage").html("write a shorter status please (" + statusUpdate.length + " / " + maxStatusLength + ")");
+					return;
+				}
 				var pointsSpent = $("#pointsSpent").val();
 				$.ajax({
 					type: "POST",
@@ -303,6 +317,7 @@
 						} else {
 							$("#postMessage").html("");
 							$("#statusInput").val("");
+							updateCharCount();
 							updateUsersList();
 						}
 						if (data.points !== undefined) {
@@ -366,6 +381,8 @@
 				<tr>
 					<th>
 						<div class="box"><textarea class="statusInput" id="statusInput" type="text" name="post status" style="resize:none;" >What's up ?</textarea>
+						<br/>
+						<span id="charCount" style="color:#909090;"></span>
 						<br/>
 						<label for="pointsSpent">Spend points : </label>
 						<input type="range" id="pointsSpent" name="pointsSpent" min="1" max="25" value="1" style="width:200px;" /> <!--disabled-->

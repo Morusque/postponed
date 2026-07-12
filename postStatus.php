@@ -17,6 +17,8 @@
 	if (isset($_POST['statusUpdate'])) $statusUpdate=$_POST['statusUpdate'];
 	if (isset($_POST['pointsSpent'])) $pointsSpent=intval($_POST['pointsSpent']);
 
+	// the length is measured on the raw text (in characters, not bytes) so it matches what the user sees in the counter
+	$statusLength = function_exists('mb_strlen') ? mb_strlen($statusUpdate, 'UTF-8') : strlen($statusUpdate);
 	$statusUpdate = htmlspecialchars($statusUpdate, ENT_XML1, 'UTF-8');
 
 	$dateWritten = time();
@@ -51,7 +53,7 @@
 			$points = grantDailyPoints($userDoc);
 			if ($pointsSpent >= 1) {
 				if ($points >= $pointsSpent) {
-					if (strlen($statusUpdate)<700) {
+					if ($statusLength<=7000) {
 						$updatedPoints = $points - $pointsSpent;
 						$userDoc->getElementsByTagName('data')->item(0)->setAttribute("points", $updatedPoints);
 						$posts =  $userDoc->getElementsByTagName('posts')->item(0);
@@ -66,7 +68,7 @@
 						echo json_encode($data);
 					} else {
 						saveDocAtomic($userDoc, $userXml);
-						echo json_encode(array('points'=>$points,'error'=>"write a shorter status please"));
+						echo json_encode(array('points'=>$points,'error'=>"write a shorter status please (" . $statusLength . " / 7000)"));
 					}
 				} else {
 					saveDocAtomic($userDoc, $userXml);
