@@ -38,6 +38,7 @@
 			$stlDates = array();
 			$stlPending = array();
 			$stlDisplayDates = array();
+			$stlOwn = array();
 			$userXml = 'users/' . $currentUserId . '.xml';
 			$userDoc = new DOMDocument();
 			$userDoc->Load($userXml);
@@ -50,6 +51,7 @@
 				$stlDates[] = $theseStatuses->item($j)->getAttribute("date");
 				$stlPending[] = ($thisDisplayDate > time());
 				$stlDisplayDates[] = $thisDisplayDate;
+				$stlOwn[] = true;
 			}
 			$followsList = $userDoc->getElementsByTagName('follows')->item(0);
 			if ($followsList) {
@@ -62,13 +64,14 @@
 					$theseStatuses = $followDoc->getElementsByTagName('posts')->item(0)->getElementsByTagName('post');
 					for ($j=0;$j<$theseStatuses->length;$j++) {
 						$thisDisplayDate = displayDateFor($theseStatuses->item($j)->getAttribute("date"), $theseStatuses->item($j)->getAttribute("pointsSpent"));
-						if ($thisDisplayDate <= time()) {
-							$stlPosts[] = $theseStatuses->item($j)->getAttribute("message");
-							$stlNames[] = $follows->item($i)->getAttribute("name");
-							$stlDates[] = $theseStatuses->item($j)->getAttribute("date");
-							$stlPending[] = false;
-							$stlDisplayDates[] = $thisDisplayDate;
-						}
+						$isPending = ($thisDisplayDate > time());
+						// pending posts from other users are listed too, but their text is not sent, only their arrival date
+						$stlPosts[] = $isPending ? "" : $theseStatuses->item($j)->getAttribute("message");
+						$stlNames[] = $follows->item($i)->getAttribute("name");
+						$stlDates[] = $theseStatuses->item($j)->getAttribute("date");
+						$stlPending[] = $isPending;
+						$stlDisplayDates[] = $thisDisplayDate;
+						$stlOwn[] = false;
 					}
 				}
 			}
@@ -80,7 +83,11 @@
 				}
 				if ($stlPending[$mostRecent]) {
 					$appearDate = date("Y / n / j", intval($stlDisplayDates[$mostRecent]));
-					$postsToDisplay[] = '<p style="padding:0px;margin:0px;"><div style="color:#c0c0c0;display: inline;">' . $stlNames[$mostRecent] . ' : </div><div style="display: inline;color:#a0a0a0;font-style:italic;">' . $stlPosts[$mostRecent] . '</div><div style="display: inline;color:#c0c0c0;"> (will appear on ' . $appearDate . ')</div></p>';
+					if ($stlOwn[$mostRecent]) {
+						$postsToDisplay[] = '<p style="padding:0px;margin:0px;"><div style="color:#c0c0c0;display: inline;">' . $stlNames[$mostRecent] . ' : </div><div style="display: inline;color:#a0a0a0;font-style:italic;">' . $stlPosts[$mostRecent] . '</div><div style="display: inline;color:#c0c0c0;"> (will appear on ' . $appearDate . ')</div></p>';
+					} else {
+						$postsToDisplay[] = '<p style="padding:0px;margin:0px;"><div style="color:#c0c0c0;display: inline;">' . $stlNames[$mostRecent] . ' : </div><div style="display: inline;color:#c0c0c0;font-style:italic;">(something will appear here on ' . $appearDate . ')</div></p>';
+					}
 				} else {
 					$postsToDisplay[] = '<p style="padding:0px;margin:0px;"><div style="color:#808080;display: inline;">' . $stlNames[$mostRecent] . ' : </div><div style="display: inline;">' . $stlPosts[$mostRecent] . "</div></p>";
 				}
@@ -94,6 +101,8 @@
 				$stlPending = array_values($stlPending);
 				unset($stlDisplayDates[$mostRecent]);
 				$stlDisplayDates = array_values($stlDisplayDates);
+				unset($stlOwn[$mostRecent]);
+				$stlOwn = array_values($stlOwn);
 			}
 			for ($i=0;$i<count($postsToDisplay);$i++) {
 				echo $postsToDisplay[$i];
