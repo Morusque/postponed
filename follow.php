@@ -77,7 +77,7 @@
 				}
 			}
 		}
-		$userDoc->save($userXml);
+		saveDocAtomic($userDoc, $userXml);
 	}
 
 ?>

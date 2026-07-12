@@ -40,6 +40,30 @@
 		return false;
 	}
 
+	// computes the date at which a post becomes visible
+	// one point leaves the default delay of a century, each extra point halves it
+	// (computed from the writing date so that a rule change applies to older posts too)
+	function displayDateFor($dateWritten, $pointsSpent) {
+		$pointsSpent = intval($pointsSpent);
+		$delay = 100;
+		for ($i=1 ; $i<$pointsSpent ; $i++) $delay /= 2;
+		return intval($dateWritten) + (int)round($delay * 365.25 * 24 * 60 * 60);
+	}
+
+	// saves an xml file atomically (write to a temporary file then rename)
+	// so that a concurrent reader can never see a half-written file
+	function saveDocAtomic($doc, $path) {
+		$tmp = $path . '.' . getmypid() . '.tmp';
+		if (@$doc->save($tmp) === false) {
+			$doc->save($path);
+			return;
+		}
+		if (!@rename($tmp, $path)) {
+			$doc->save($path);
+			@unlink($tmp);
+		}
+	}
+
 	// gives one point per day to the user since his last visit
 	// the caller is responsible for saving $userDoc afterwards
 	function grantDailyPoints($userDoc) {

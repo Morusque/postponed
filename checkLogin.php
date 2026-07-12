@@ -15,6 +15,7 @@
 
 	$userFound = false;
 	$goodPass = false;
+	$passwordAuth = false;
 	$currentUserId = -1;
 	$canonicalName = $name;
 	$users = $doc->getElementsByTagName('users')->item(0)->getElementsByTagName('user');
@@ -29,7 +30,8 @@
 			$matchedUser = $users->item($i);
 			$thisHash = $matchedUser->getAttribute("password");
 			$currentUserId = $matchedUser->getAttribute("id");
-			if (authenticate($typedPassword, $token, $thisHash, 'users/'.$currentUserId.'.xml')) {
+			$passwordAuth = ($typedPassword!="" && checkPassword($typedPassword, $thisHash));
+			if ($passwordAuth || authenticate("", $token, $thisHash, 'users/'.$currentUserId.'.xml')) {
 				$goodPass = true;
 			}
 		}
@@ -42,21 +44,23 @@
 		$userDoc->Load($userXml);
 		$points = grantDailyPoints($userDoc);
 		// upgrades old unsalted md5 passwords to salted hashes (only possible when the actual password was sent)
-		if (isLegacyHash($thisHash) && $typedPassword!="" && checkPassword($typedPassword, $thisHash)) {
+		if (isLegacyHash($thisHash) && $passwordAuth) {
 			$newHash = password_hash($typedPassword, PASSWORD_DEFAULT);
 			if (is_writable($baseXml)) {
 				$matchedUser->setAttribute("password", $newHash);
-				$doc->save($baseXml);
+				saveDocAtomic($doc, $baseXml);
 				$userDoc->getElementsByTagName('data')->item(0)->setAttribute("password", $newHash);
 			}
 		}
-		if (is_writable($userXml)) {
+		if ($passwordAuth && is_writable($userXml)) {
 			// hands out a fresh login token, its hash is stored in the user file
 			// this way the browser can keep a cookie that is not the password itself
+			// the token is only renewed on password logins : renewing it on every visit
+			// would invalidate the requests already in flight with the previous token
 			$newToken = bin2hex(random_bytes(16));
 			$userDoc->getElementsByTagName('data')->item(0)->setAttribute("tokenHash", hash('sha256', $newToken));
-			$userDoc->save($userXml);
 		}
+		if (is_writable($userXml)) saveDocAtomic($userDoc, $userXml);
 	}
 
 	$data = array('found'=>$userFound,'goodPass'=>$goodPass,'currentUserId'=>$currentUserId,'points'=>$points,'name'=>$canonicalName,'token'=>$newToken);

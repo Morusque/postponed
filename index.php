@@ -235,9 +235,11 @@
 								updatePointsSlider();
 								loggedIn=true;
 							}
+							// the lists are only requested once checkLogin has answered,
+							// otherwise they could race with the login and get rejected
+							updateUsersList();
 						}
 					});
-					updateUsersList();
 				} else {
 					$("#loginName").val("user name");
 					$("#loginPass").val("password");
@@ -321,8 +323,9 @@
 			}
 			function calculateDisplayDate() {
 				var pointsSpent = document.getElementById('pointsSpent').value;
+				// one point leaves the default delay of a century, each extra point halves it (same rule as functions.php)
 				var delay = 100;
-				for (var i=0 ; i<pointsSpent ; i++) delay /= 2;
+				for (var i=1 ; i<pointsSpent ; i++) delay /= 2;
 				var dateToDisplay = new Date(Date.now() + delay * 365.25 * 24 * 60 * 60 * 1000);
 				return formatDate(dateToDisplay);
 			}

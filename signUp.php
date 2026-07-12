@@ -60,7 +60,7 @@
 							$doc->getElementsByTagName('users')->item(0)->appendChild($newUser);
 							$doc->preserveWhiteSpace = false;
 							$doc->formatOutput = true;
-							$doc->save($baseXml);
+							saveDocAtomic($doc, $baseXml);
 							// creates user xml
 							$userDoc = new DOMDocument('1.0', 'UTF-8');
 							$userXmlRoot = $userDoc->createElement("user");
@@ -76,7 +76,7 @@
 							$userXmlRoot->appendChild($followsNode);
 							$postsNode = $userDoc->createElement("posts");
 							$userXmlRoot->appendChild($postsNode);
-							$userDoc->save('users/' . $freeId . '.xml');
+							saveDocAtomic($userDoc, 'users/' . $freeId . '.xml');
 							echo "registration done";
 						} else {
 							if ($typedPassword=="password") echo "choose another password please<br/>";

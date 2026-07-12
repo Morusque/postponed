@@ -44,11 +44,11 @@
 			// the user's own posts are always listed, the ones not yet visible to everyone are marked as pending
 			$theseStatuses = $userDoc->getElementsByTagName('posts')->item(0)->getElementsByTagName('post');
 			for ($j=0;$j<$theseStatuses->length;$j++) {
-				$thisDisplayDate = $theseStatuses->item($j)->getAttribute("displayDate");
+				$thisDisplayDate = displayDateFor($theseStatuses->item($j)->getAttribute("date"), $theseStatuses->item($j)->getAttribute("pointsSpent"));
 				$stlPosts[] = $theseStatuses->item($j)->getAttribute("message");
 				$stlNames[] = $canonicalName;
 				$stlDates[] = $theseStatuses->item($j)->getAttribute("date");
-				$stlPending[] = ($thisDisplayDate!="" && intval($thisDisplayDate) > time());
+				$stlPending[] = ($thisDisplayDate > time());
 				$stlDisplayDates[] = $thisDisplayDate;
 			}
 			$followsList = $userDoc->getElementsByTagName('follows')->item(0);
@@ -61,8 +61,8 @@
 					$followDoc->Load($followXml);
 					$theseStatuses = $followDoc->getElementsByTagName('posts')->item(0)->getElementsByTagName('post');
 					for ($j=0;$j<$theseStatuses->length;$j++) {
-						$thisDisplayDate = $theseStatuses->item($j)->getAttribute("displayDate");
-						if ($thisDisplayDate=="" || intval($thisDisplayDate) <= time()) {
+						$thisDisplayDate = displayDateFor($theseStatuses->item($j)->getAttribute("date"), $theseStatuses->item($j)->getAttribute("pointsSpent"));
+						if ($thisDisplayDate <= time()) {
 							$stlPosts[] = $theseStatuses->item($j)->getAttribute("message");
 							$stlNames[] = $follows->item($i)->getAttribute("name");
 							$stlDates[] = $theseStatuses->item($j)->getAttribute("date");
