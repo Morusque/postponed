@@ -1,0 +1,9 @@
+# private data (password hashes and future posts), no direct web access
+# the php scripts read these files through the filesystem so the site still works
+<IfModule mod_authz_core.c>
+	Require all denied
+</IfModule>
+<IfModule !mod_authz_core.c>
+	Order allow,deny
+	Deny from all
+</IfModule>

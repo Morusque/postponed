@@ -1,0 +1,5 @@
+# real user data : password hashes + posts that are not supposed to be readable yet
+users/*
+!users/.htaccess
+*.bak
+*.old
